@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auth Page</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.container {
+  width: 350px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  overflow: hidden;
+}
+
+.tabs {
+  display: flex;
+}
+
+.tabs button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  cursor: pointer;
+  background: #eee;
+  font-weight: bold;
+}
+
+.tabs button.active {
+  background: #667eea;
+  color: white;
+}
+
+.form {
+  padding: 20px;
+  display: none;
+}
+
+.form.active {
+  display: block;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+button.submit {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  background: #667eea;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button.submit:hover {
+  background: #5a67d8;
+}
+
+.msg {
+  margin-top: 10px;
+  font-size: 14px;
+  text-align: center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="tabs">
+    <button id="loginTab" class="active" onclick="showLogin()">Login</button>
+    <button id="signupTab" onclick="showSignup()">Signup</button>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="loginForm" class="form active">
+    <h3>Login</h3>
+    <input id="loginMobile" placeholder="Mobile Number">
+    <input id="loginPassword" type="password" placeholder="Password">
+    <button class="submit" onclick="login()">Login</button>
+    <div class="msg" id="loginMsg"></div>
+  </div>
+
+  <!-- SIGNUP -->
+  <div id="signupForm" class="form">
+    <h3>Signup</h3>
+    <input id="signupName" placeholder="Name">
+    <input id="signupMobile" placeholder="Mobile Number">
+    <input id="signupPassword" type="password" placeholder="Password">
+    <button class="submit" onclick="signup()">Signup</button>
+    <div class="msg" id="signupMsg"></div>
+  </div>
+
+</div>
+
+<script>
+const SUPABASE_URL = "https://utrnqhxpuecwbbdmmdyx.supabase.co";
+const SUPABASE_KEY = "sb_publishable_nCnBcyg7XkU6kOJ1-V3Xrg_B9pnm53s";
+
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// 🔄 Toggle Forms
+function showLogin() {
+  document.getElementById("loginForm").classList.add("active");
+  document.getElementById("signupForm").classList.remove("active");
+  loginTab.classList.add("active");
+  signupTab.classList.remove("active");
+}
+
+function showSignup() {
+  document.getElementById("signupForm").classList.add("active");
+  document.getElementById("loginForm").classList.remove("active");
+  signupTab.classList.add("active");
+  loginTab.classList.remove("active");
+}
+
+// 🟢 Signup
+async function signup() {
+  const name = signupName.value.trim();
+  const mobile = signupMobile.value.trim();
+  const password = signupPassword.value.trim();
+
+  if (!name || !mobile || !password) {
+    signupMsg.innerText = "⚠️ Fill all fields";
+    signupMsg.style.color = "red";
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("users")
+    .insert([{ name, mobile_number: mobile, password }]);
+
+  if (error) {
+    signupMsg.innerText = "❌ " + error.message;
+    signupMsg.style.color = "red";
+  } else {
+    signupMsg.innerText = "✅ Signup successful!";
+    signupMsg.style.color = "green";
+  }
+}
+
+// 🔵 Login
+async function login() {
+  const mobile = loginMobile.value.trim();
+  const password = loginPassword.value.trim();
+
+  const { data, error } = await supabaseClient
+    .from("users")
+    .select("*")
+    .eq("mobile_number", mobile)
+    .eq("password", password)
+    .single();
+
+  if (error || !data) {
+    loginMsg.innerText = "❌ Invalid login";
+    loginMsg.style.color = "red";
+  } else {
+    loginMsg.innerText = "✅ Login successful!";
+    loginMsg.style.color = "green";
+
+    // redirect example
+    // window.location.href = "home.html";
+  }
+}
+</script>
+
+</body>
+</html>
